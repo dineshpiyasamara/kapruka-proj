@@ -132,7 +132,7 @@ npm run preview
 - CORS is configured for Vite local development on `localhost:5173` and `127.0.0.1:5173`.
 - The Kapruka MCP endpoint is configured in `backend/app.py`.
 
-## Useful Commands
+## Base Commands
 
 ```bash
 # Backend
