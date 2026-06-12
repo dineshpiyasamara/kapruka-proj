@@ -119,7 +119,10 @@ function App() {
     if (cart.length === 0) return;
 
     const cartText = cart
-      .map((item, index) => `${index + 1}. ${item.name} - ${item.price || "price unknown"}`)
+      .map(
+        (item, index) =>
+          `${index + 1}. ${item.name} - ${item.price || "price unknown"}`
+      )
       .join("\n");
 
     sendMessage(
@@ -130,31 +133,33 @@ function App() {
   return (
     <main className="app-shell">
       <section className="left-panel">
-        <div className="brand-pill">Kapruka AI Agent</div>
+        <div>
+          <div className="brand-pill">Kapruka AI Agent</div>
 
-        <h1>
-          Shopping that feels
-          <span> human.</span>
-        </h1>
+          <h1>
+            Shopping that feels
+            <span> human.</span>
+          </h1>
 
-        <p className="hero-copy">
-          A full-screen AI shopping concierge for everyday needs, gifts,
-          delivery planning, and checkout.
-        </p>
+          <p className="hero-copy">
+            A full-screen AI shopping concierge for everyday needs, gifts,
+            delivery planning, and checkout.
+          </p>
 
-        <div className="mode-grid">
-          <button onClick={() => sendMessage("I want to buy groceries for myself")}>
-            🛒 Everyday shopping
-          </button>
-          <button onClick={() => sendMessage("I need to send a gift to someone")}>
-            🎁 Gift mode
-          </button>
-          <button onClick={() => sendMessage("මට Sinhala වලින් help කරන්න")}>
-            🇱🇰 Sinhala
-          </button>
-          <button onClick={() => sendMessage("Tanglish walin shopping help ekak denna")}>
-            💬 Tanglish
-          </button>
+          <div className="mode-grid">
+            <button onClick={() => sendMessage("I want to buy groceries for myself")}>
+              🛒 Everyday shopping
+            </button>
+            <button onClick={() => sendMessage("I need to send a gift to someone")}>
+              🎁 Gift mode
+            </button>
+            <button onClick={() => sendMessage("මට Sinhala වලින් help කරන්න")}>
+              🇱🇰 Sinhala
+            </button>
+            <button onClick={() => sendMessage("Tanglish walin shopping help ekak denna")}>
+              💬 Tanglish
+            </button>
+          </div>
         </div>
 
         <div className="demo-card">
@@ -172,6 +177,7 @@ function App() {
             <p className="eyebrow">Live shopping assistant</p>
             <h2>Kapruka Concierge</h2>
           </div>
+
           <div className="status-dot">
             <span></span>
             Online
@@ -198,7 +204,11 @@ function App() {
 
                         <div className="product-body">
                           <h3>{product.name}</h3>
-                          <p className="price">{product.price || "Price available in Kapruka"}</p>
+
+                          <p className="price">
+                            {product.price || "Price available in Kapruka"}
+                          </p>
+
                           {product.why && <p className="why">{product.why}</p>}
 
                           <div className="product-actions">
@@ -207,7 +217,10 @@ function App() {
                                 View
                               </a>
                             )}
-                            <button onClick={() => addToCart(product)}>Add to cart</button>
+
+                            <button onClick={() => addToCart(product)}>
+                              Add to cart
+                            </button>
                           </div>
                         </div>
                       </article>
@@ -264,6 +277,7 @@ function App() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask for products, gifts, delivery dates, Sinhala/Tanglish help..."
           />
+
           <button type="submit" disabled={loading}>
             Send
           </button>
@@ -276,6 +290,7 @@ function App() {
             <p className="eyebrow">Multi-item cart</p>
             <h2>Your cart</h2>
           </div>
+
           <span>{cart.length}</span>
         </div>
 
@@ -292,6 +307,7 @@ function App() {
                   <h4>{item.name}</h4>
                   <p>{item.price || "Price pending"}</p>
                 </div>
+
                 <button onClick={() => removeFromCart(index)}>×</button>
               </div>
             ))
