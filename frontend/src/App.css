@@ -29,7 +29,9 @@
   }
   
   button,
-  input {
+  input,
+  textarea,
+  select {
     font: inherit;
   }
   
@@ -471,12 +473,223 @@
     width: 100%;
     padding: 14px 16px;
   }
+
+  .checkout-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(2, 6, 23, 0.72);
+    backdrop-filter: blur(18px);
+  }
+
+  .checkout-modal {
+    width: min(960px, 100%);
+    max-height: min(92vh, 920px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 28px;
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.9)),
+      rgba(15, 23, 42, 0.95);
+    box-shadow: 0 32px 110px rgba(0, 0, 0, 0.55);
+  }
+
+  .checkout-modal-header {
+    flex: 0 0 auto;
+    padding: 22px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+  }
+
+  .checkout-modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  .modal-close-button {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+    font-size: 25px;
+    line-height: 1;
+  }
+
+  .modal-close-button:hover {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .checkout-form {
+    overflow-y: auto;
+    padding: 22px 26px 26px;
+  }
+
+  .checkout-form::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .checkout-form::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+  }
+
+  .checkout-summary-card {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .checkout-summary-card > div {
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .summary-label {
+    margin: 0 0 6px;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .checkout-summary-card strong {
+    color: #fde68a;
+    font-size: 20px;
+  }
+
+  .form-section {
+    margin-top: 16px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .form-section h3 {
+    margin: 0 0 14px;
+    font-size: 16px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .checkout-form label {
+    display: grid;
+    gap: 7px;
+    color: #dbeafe;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .checkout-form input,
+  .checkout-form textarea,
+  .checkout-form select {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    outline: 0;
+    border-radius: 14px;
+    padding: 12px 13px;
+    background: rgba(15, 23, 42, 0.82);
+    color: #f8fafc;
+  }
+
+  .checkout-form input:focus,
+  .checkout-form textarea:focus,
+  .checkout-form select:focus {
+    border-color: rgba(250, 204, 21, 0.76);
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.13);
+  }
+
+  .checkout-form input::placeholder,
+  .checkout-form textarea::placeholder {
+    color: #64748b;
+  }
+
+  .checkout-form textarea {
+    min-height: 92px;
+    resize: vertical;
+  }
+
+  .form-section > label {
+    margin-top: 14px;
+  }
+
+  .order-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .order-type-grid button {
+    min-height: 54px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 16px;
+    padding: 13px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
+    text-align: left;
+    font-weight: 800;
+  }
+
+  .order-type-grid button.active {
+    border-color: rgba(250, 204, 21, 0.8);
+    background: rgba(250, 204, 21, 0.16);
+    color: #fef3c7;
+  }
+
+  .checkout-actions {
+    position: sticky;
+    bottom: -26px;
+    margin: 20px -26px -26px;
+    padding: 16px 26px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.11);
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(16px);
+  }
+
+  .primary-button,
+  .secondary-button {
+    border: 0;
+    border-radius: 999px;
+    padding: 13px 17px;
+    font-weight: 900;
+  }
+
+  .primary-button {
+    color: #0f172a;
+    background: #facc15;
+  }
+
+  .secondary-button {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.12);
+  }
   
   @media (max-width: 1380px) {
-    .app-shell {
-      grid-template-columns: 220px minmax(680px, 1fr) 260px;
-    }
-  
     .messages {
       padding: 24px 28px;
     }
@@ -537,5 +750,42 @@
     .composer button {
       width: 100%;
       padding: 14px;
+    }
+
+    .checkout-overlay {
+      padding: 10px;
+    }
+
+    .checkout-modal {
+      max-height: 96vh;
+      border-radius: 22px;
+    }
+
+    .checkout-modal-header,
+    .checkout-form {
+      padding: 18px;
+    }
+
+    .checkout-summary-card,
+    .form-grid,
+    .order-type-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-section {
+      padding: 15px;
+      border-radius: 16px;
+    }
+
+    .checkout-actions {
+      bottom: -18px;
+      margin: 18px -18px -18px;
+      padding: 14px 18px;
+      flex-direction: column-reverse;
+    }
+
+    .primary-button,
+    .secondary-button {
+      width: 100%;
     }
   }

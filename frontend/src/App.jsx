@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import CheckoutForm from "./components/CheckoutForm";
 import "./App.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
@@ -30,6 +31,7 @@ function App() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState([]);
+  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const chatEndRef = useRef(null);
 
   const cartTotal = useMemo(() => {
@@ -117,17 +119,51 @@ function App() {
 
   function checkoutWithAgent() {
     if (cart.length === 0) return;
+    setShowCheckoutForm(true);
+  }
 
-    const cartText = cart
+  function handleCheckoutSubmit(details) {
+    setShowCheckoutForm(false);
+
+    const cartText = details.cart
       .map(
         (item, index) =>
           `${index + 1}. ${item.name} - ${item.price || "price unknown"}`
       )
       .join("\n");
 
-    sendMessage(
-      `I want to checkout these items:\n${cartText}\n\nPlease ask me for the missing delivery, recipient, sender, delivery date, and gift message details one by one.`
-    );
+    const checkoutText = `I want to checkout these Kapruka cart items:
+${cartText}
+
+Approximate total: ${
+      details.cartTotal > 0
+        ? `${details.currency} ${details.cartTotal.toLocaleString()}`
+        : "Pending"
+    }
+Currency: ${details.currency}
+Order type: ${details.orderType}
+
+Recipient details:
+Name: ${details.recipientName}
+Phone: ${details.recipientPhone}
+Email: ${details.recipientEmail || "Not provided"}
+
+Delivery details:
+City: ${details.deliveryCity}
+Address: ${details.deliveryAddress}
+Preferred delivery date: ${details.deliveryDate}
+
+Sender details:
+Name: ${details.senderName}
+Phone: ${details.senderPhone}
+Email: ${details.senderEmail || "Not provided"}
+
+Gift message:
+${details.giftMessage || "No gift message"}
+
+Please check delivery availability first for this city, address, and preferred date. If delivery is possible, help me continue to Kapruka guest checkout.`;
+
+    sendMessage(checkoutText);
   }
 
   return (
@@ -331,6 +367,15 @@ function App() {
           </button>
         </div>
       </aside>
+
+      {showCheckoutForm && (
+        <CheckoutForm
+          cart={cart}
+          cartTotal={cartTotal}
+          onClose={() => setShowCheckoutForm(false)}
+          onSubmit={handleCheckoutSubmit}
+        />
+      )}
     </main>
   );
 }

@@ -5,3 +5,9 @@ body,
   width: 100%;
   min-height: 100%;
 }
+
+#root {
+  max-width: none;
+  padding: 0;
+  text-align: left;
+}
