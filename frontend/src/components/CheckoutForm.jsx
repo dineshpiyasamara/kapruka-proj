@@ -22,6 +22,8 @@ function CheckoutForm({ cart, cartTotal, onClose, onSubmit }) {
     orderType: "self-shopping",
   });
 
+  const isGiftOrder = formData.orderType === "gift";
+
   function updateField(field, value) {
     setFormData((prev) => ({
       ...prev,
@@ -29,14 +31,33 @@ function CheckoutForm({ cart, cartTotal, onClose, onSubmit }) {
     }));
   }
 
+  function updateOrderType(orderType) {
+    setFormData((prev) => ({
+      ...prev,
+      orderType,
+    }));
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
 
-    onSubmit({
-      ...formData,
-      cart,
-      cartTotal,
-    });
+    const checkoutPayload = isGiftOrder
+      ? {
+          ...formData,
+          cart,
+          cartTotal,
+        }
+      : {
+          ...formData,
+          senderName: formData.recipientName,
+          senderPhone: formData.recipientPhone,
+          senderEmail: formData.recipientEmail,
+          giftMessage: "",
+          cart,
+          cartTotal,
+        };
+
+    onSubmit(checkoutPayload);
   }
 
   return (
@@ -57,7 +78,9 @@ function CheckoutForm({ cart, cartTotal, onClose, onSubmit }) {
           <div className="checkout-summary-card">
             <div>
               <p className="summary-label">Items</p>
-              <strong>{cart.length} item{cart.length === 1 ? "" : "s"}</strong>
+              <strong>
+                {cart.length} item{cart.length === 1 ? "" : "s"}
+              </strong>
             </div>
 
             <div>
@@ -75,7 +98,7 @@ function CheckoutForm({ cart, cartTotal, onClose, onSubmit }) {
               <button
                 type="button"
                 className={formData.orderType === "self-shopping" ? "active" : ""}
-                onClick={() => updateField("orderType", "self-shopping")}
+                onClick={() => updateOrderType("self-shopping")}
               >
                 🛒 For myself
               </button>
@@ -83,29 +106,42 @@ function CheckoutForm({ cart, cartTotal, onClose, onSubmit }) {
               <button
                 type="button"
                 className={formData.orderType === "gift" ? "active" : ""}
-                onClick={() => updateField("orderType", "gift")}
+                onClick={() => updateOrderType("gift")}
               >
                 🎁 Sending as a gift
               </button>
             </div>
+
+            <div className="form-grid" style={{ marginTop: "14px" }}>
+              <label>
+                Currency
+                <select
+                  value={formData.currency}
+                  onChange={(e) => updateField("currency", e.target.value)}
+                >
+                  <option value="LKR">LKR</option>
+                  <option value="USD">USD</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           <div className="form-section">
-            <h3>Recipient details</h3>
+            <h3>{isGiftOrder ? "Recipient details" : "Your delivery details"}</h3>
 
             <div className="form-grid">
               <label>
-                Recipient name *
+                {isGiftOrder ? "Recipient name *" : "Your name *"}
                 <input
                   required
                   value={formData.recipientName}
                   onChange={(e) => updateField("recipientName", e.target.value)}
-                  placeholder="Ex: Nimal Perera"
+                  placeholder={isGiftOrder ? "Ex: Nimal Perera" : "Ex: Your name"}
                 />
               </label>
 
               <label>
-                Recipient phone *
+                {isGiftOrder ? "Recipient phone *" : "Your phone *"}
                 <input
                   required
                   value={formData.recipientPhone}
@@ -115,7 +151,7 @@ function CheckoutForm({ cart, cartTotal, onClose, onSubmit }) {
               </label>
 
               <label>
-                Recipient email
+                {isGiftOrder ? "Recipient email" : "Your email"}
                 <input
                   value={formData.recipientEmail}
                   onChange={(e) => updateField("recipientEmail", e.target.value)}
@@ -156,68 +192,57 @@ function CheckoutForm({ cart, cartTotal, onClose, onSubmit }) {
             </label>
           </div>
 
-          <div className="form-section">
-            <h3>Sender details</h3>
+          {isGiftOrder && (
+            <>
+              <div className="form-section">
+                <h3>Sender details</h3>
 
-            <div className="form-grid">
-              <label>
-                Sender name *
-                <input
-                  required
-                  value={formData.senderName}
-                  onChange={(e) => updateField("senderName", e.target.value)}
-                  placeholder="Ex: Sanduni Fernando"
-                />
-              </label>
+                <div className="form-grid">
+                  <label>
+                    Sender name *
+                    <input
+                      required={isGiftOrder}
+                      value={formData.senderName}
+                      onChange={(e) => updateField("senderName", e.target.value)}
+                      placeholder="Ex: Sanduni Fernando"
+                    />
+                  </label>
 
-              <label>
-                Sender phone *
-                <input
-                  required
-                  value={formData.senderPhone}
-                  onChange={(e) => updateField("senderPhone", e.target.value)}
-                  placeholder="Ex: 071 234 5678"
-                />
-              </label>
+                  <label>
+                    Sender phone *
+                    <input
+                      required={isGiftOrder}
+                      value={formData.senderPhone}
+                      onChange={(e) => updateField("senderPhone", e.target.value)}
+                      placeholder="Ex: 071 234 5678"
+                    />
+                  </label>
 
-              <label>
-                Sender email
-                <input
-                  value={formData.senderEmail}
-                  onChange={(e) => updateField("senderEmail", e.target.value)}
-                  placeholder="your@email.com (optional)"
-                />
-              </label>
+                  <label>
+                    Sender email
+                    <input
+                      value={formData.senderEmail}
+                      onChange={(e) => updateField("senderEmail", e.target.value)}
+                      placeholder="your@email.com (optional)"
+                    />
+                  </label>
+                </div>
+              </div>
 
-              <label>
-                Currency
-                <select
-                  value={formData.currency}
-                  onChange={(e) => updateField("currency", e.target.value)}
-                >
-                  <option value="LKR">LKR</option>
-                  <option value="USD">USD</option>
-                </select>
-              </label>
-            </div>
-          </div>
+              <div className="form-section">
+                <h3>Gift message</h3>
 
-          <div className="form-section">
-            <h3>Gift message</h3>
-
-            <label>
-              Message card note
-              <textarea
-                value={formData.giftMessage}
-                onChange={(e) => updateField("giftMessage", e.target.value)}
-                placeholder={
-                  formData.orderType === "gift"
-                    ? "Ex: Happy birthday Amma! With love..."
-                    : "Optional note for this order"
-                }
-              />
-            </label>
-          </div>
+                <label>
+                  Message card note
+                  <textarea
+                    value={formData.giftMessage}
+                    onChange={(e) => updateField("giftMessage", e.target.value)}
+                    placeholder="Ex: Happy birthday Amma! With love..."
+                  />
+                </label>
+              </div>
+            </>
+          )}
 
           <div className="checkout-actions">
             <button type="button" className="secondary-button" onClick={onClose}>
