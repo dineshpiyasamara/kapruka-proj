@@ -2,7 +2,13 @@ import { useMemo, useRef, useState } from "react";
 import CheckoutForm from "./components/CheckoutForm";
 import "./App.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
+function getChatUrl() {
+  if (!API_BASE) return "/api/chat";
+  if (API_BASE.endsWith("/api")) return `${API_BASE}/chat`;
+  return `${API_BASE}/api/chat`;
+}
 
 const starterPrompts = [
   "I need groceries for this week under Rs. 10,000",
@@ -60,7 +66,9 @@ function formatPrice(price) {
   const text = String(price).trim();
 
   const amountMatch = text.match(/['"]?amount['"]?\s*:\s*([0-9.]+)/i);
-  const currencyMatch = text.match(/['"]?currency['"]?\s*:\s*['"]?([A-Z]{3})['"]?/i);
+  const currencyMatch = text.match(
+    /['"]?currency['"]?\s*:\s*['"]?([A-Z]{3})['"]?/i,
+  );
 
   if (amountMatch) {
     const amount = Number(amountMatch[1] || 0);
@@ -82,7 +90,13 @@ function getProductKey(product, index) {
 }
 
 function getProductImage(product) {
-  return product.image || product.image_url || product.imageUrl || product.thumbnail || "";
+  return (
+    product.image ||
+    product.image_url ||
+    product.imageUrl ||
+    product.thumbnail ||
+    ""
+  );
 }
 
 function App() {
@@ -90,8 +104,7 @@ function App() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text:
-        "Ayubowan! I’m your Kapruka shopping buddy. Tell me what you need — groceries, gifts, electronics, flowers, cakes, or even a last-minute rescue mission.",
+      text: "Ayubowan! I’m your Kapruka shopping buddy. Tell me what you need — groceries, gifts, electronics, flowers, cakes, or even a last-minute rescue mission.",
       products: [],
       quickReplies: starterPrompts.slice(0, 3),
     },
@@ -142,7 +155,7 @@ function App() {
     scrollToBottom();
 
     try {
-      const res = await fetch(`${API_BASE}/api/chat`, {
+      const res = await fetch(getChatUrl(), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -173,8 +186,7 @@ function App() {
         ...prev,
         {
           role: "assistant",
-          text:
-            "Aiyo, I could not reach the shopping agent right now. Check whether the backend is running on port 8000.",
+          text: "Aiyo, I could not reach the shopping agent right now. Check whether the backend is running on port 8000.",
           products: [],
           quickReplies: ["Try again", "Search flowers", "Search groceries"],
         },
@@ -196,7 +208,7 @@ function App() {
     const cartText = details.cart
       .map(
         (item, index) =>
-          `${index + 1}. ${item.name} - ${formatPrice(item.price)}`
+          `${index + 1}. ${item.name} - ${formatPrice(item.price)}`,
       )
       .join("\n");
 
@@ -251,11 +263,15 @@ Please check delivery availability first for this city, address, and preferred d
           </p>
 
           <div className="mode-grid">
-            <button onClick={() => sendMessage("I want to buy groceries for myself")}>
+            <button
+              onClick={() => sendMessage("I want to buy groceries for myself")}
+            >
               🛒 Everyday shopping
             </button>
 
-            <button onClick={() => sendMessage("I need to send a gift to someone")}>
+            <button
+              onClick={() => sendMessage("I need to send a gift to someone")}
+            >
               🎁 Gift mode
             </button>
 
@@ -263,7 +279,11 @@ Please check delivery availability first for this city, address, and preferred d
               🇱🇰 Sinhala
             </button>
 
-            <button onClick={() => sendMessage("Tanglish walin shopping help ekak denna")}>
+            <button
+              onClick={() =>
+                sendMessage("Tanglish walin shopping help ekak denna")
+              }
+            >
               💬 Tanglish
             </button>
           </div>
@@ -327,7 +347,8 @@ Please check delivery availability first for this city, address, and preferred d
                         {msg.products.map((product, pIndex) => {
                           const productKey = getProductKey(product, pIndex);
                           const imageUrl = getProductImage(product);
-                          const showImage = imageUrl && !failedImages[productKey];
+                          const showImage =
+                            imageUrl && !failedImages[productKey];
 
                           return (
                             <article className="product-card" key={productKey}>
@@ -356,7 +377,9 @@ Please check delivery availability first for this city, address, and preferred d
                                   {formatPrice(product.price)}
                                 </p>
 
-                                {product.why && <p className="why">{product.why}</p>}
+                                {product.why && (
+                                  <p className="why">{product.why}</p>
+                                )}
 
                                 <div className="product-actions">
                                   {product.url && (
@@ -397,7 +420,10 @@ Please check delivery availability first for this city, address, and preferred d
                       {hasQuickReplies && (
                         <div className="quick-replies">
                           {msg.quickReplies.map((reply, rIndex) => (
-                            <button key={rIndex} onClick={() => sendMessage(reply)}>
+                            <button
+                              key={rIndex}
+                              onClick={() => sendMessage(reply)}
+                            >
                               {reply}
                             </button>
                           ))}

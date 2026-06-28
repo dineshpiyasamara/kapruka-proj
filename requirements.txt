@@ -2,3 +2,5 @@ langchain_mcp_adapters
 langchain_openai
 langchain
 python-dotenv
+fastapi
+uvicorn
