@@ -16,6 +16,75 @@ function makeSessionId() {
   return `kapruka-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function getNumericPrice(price) {
+  if (!price) return 0;
+
+  if (typeof price === "number") {
+    return price;
+  }
+
+  if (typeof price === "object") {
+    const amount = price.amount || price.value || price.price || 0;
+    return Number(amount || 0);
+  }
+
+  const text = String(price);
+
+  const amountMatch = text.match(/['"]?amount['"]?\s*:\s*([0-9.]+)/i);
+  if (amountMatch) {
+    return Number(amountMatch[1] || 0);
+  }
+
+  const raw = text.replace(/[^\d.]/g, "");
+  return Number(raw || 0);
+}
+
+function formatPrice(price) {
+  if (!price) return "Price available in Kapruka";
+
+  if (typeof price === "number") {
+    return `LKR ${price.toLocaleString()}`;
+  }
+
+  if (typeof price === "object") {
+    const amount = price.amount || price.value || price.price;
+    const currency = price.currency || "LKR";
+
+    if (amount) {
+      return `${currency} ${Number(amount).toLocaleString()}`;
+    }
+
+    return "Price available in Kapruka";
+  }
+
+  const text = String(price).trim();
+
+  const amountMatch = text.match(/['"]?amount['"]?\s*:\s*([0-9.]+)/i);
+  const currencyMatch = text.match(/['"]?currency['"]?\s*:\s*['"]?([A-Z]{3})['"]?/i);
+
+  if (amountMatch) {
+    const amount = Number(amountMatch[1] || 0);
+    const currency = currencyMatch?.[1] || "LKR";
+    return `${currency} ${amount.toLocaleString()}`;
+  }
+
+  return text
+    .replace(/[{}]/g, "")
+    .replace(/['"]/g, "")
+    .replace(/amount\s*:/gi, "")
+    .replace(/currency\s*:\s*/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getProductKey(product, index) {
+  return `${product.id || product.url || product.name || "product"}-${index}`;
+}
+
+function getProductImage(product) {
+  return product.image || product.image_url || product.imageUrl || product.thumbnail || "";
+}
+
 function App() {
   const [sessionId] = useState(makeSessionId);
   const [messages, setMessages] = useState([
@@ -32,13 +101,12 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState([]);
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
+  const [failedImages, setFailedImages] = useState({});
   const chatEndRef = useRef(null);
 
   const cartTotal = useMemo(() => {
     return cart.reduce((sum, item) => {
-      const raw = String(item.price || "").replace(/[^\d.]/g, "");
-      const value = Number(raw || 0);
-      return sum + value;
+      return sum + getNumericPrice(item.price);
     }, 0);
   }, [cart]);
 
@@ -128,7 +196,7 @@ function App() {
     const cartText = details.cart
       .map(
         (item, index) =>
-          `${index + 1}. ${item.name} - ${item.price || "price unknown"}`
+          `${index + 1}. ${item.name} - ${formatPrice(item.price)}`
       )
       .join("\n");
 
@@ -186,12 +254,15 @@ Please check delivery availability first for this city, address, and preferred d
             <button onClick={() => sendMessage("I want to buy groceries for myself")}>
               🛒 Everyday shopping
             </button>
+
             <button onClick={() => sendMessage("I need to send a gift to someone")}>
               🎁 Gift mode
             </button>
+
             <button onClick={() => sendMessage("මට Sinhala වලින් help කරන්න")}>
               🇱🇰 Sinhala
             </button>
+
             <button onClick={() => sendMessage("Tanglish walin shopping help ekak denna")}>
               💬 Tanglish
             </button>
@@ -221,79 +292,132 @@ Please check delivery availability first for this city, address, and preferred d
         </div>
 
         <div className="messages">
-          {messages.map((msg, index) => (
-            <div key={index} className={`message-row ${msg.role}`}>
-              <div className="bubble">
-                <p>{msg.text}</p>
+          {messages.map((msg, index) => {
+            const hasProducts = msg.products?.length > 0;
+            const hasCheckout = Boolean(msg.checkoutUrl);
+            const hasQuickReplies = msg.quickReplies?.length > 0;
 
-                {msg.products?.length > 0 && (
-                  <div className="products-grid">
-                    {msg.products.map((product, pIndex) => (
-                      <article className="product-card" key={`${product.id}-${pIndex}`}>
-                        <div className="product-image">
-                          {product.image ? (
-                            <img src={product.image} alt={product.name} />
-                          ) : (
-                            <span>🛍️</span>
-                          )}
+            return (
+              <div
+                key={index}
+                className={`message-row ${msg.role} ${hasProducts ? "has-products" : ""}`}
+              >
+                <div className={`message-stack ${msg.role}`}>
+                  {msg.text && (
+                    <div className="bubble message-bubble-only">
+                      <p>{msg.text}</p>
+                    </div>
+                  )}
+
+                  {hasProducts && (
+                    <section className="products-panel">
+                      <div className="products-panel-header">
+                        <div>
+                          <p className="eyebrow">Product options</p>
+                          <h3>Recommended for you</h3>
                         </div>
 
-                        <div className="product-body">
-                          <h3>{product.name}</h3>
+                        <span>
+                          {msg.products.length} item
+                          {msg.products.length === 1 ? "" : "s"}
+                        </span>
+                      </div>
 
-                          <p className="price">
-                            {product.price || "Price available in Kapruka"}
-                          </p>
+                      <div className="products-grid separated-products-grid">
+                        {msg.products.map((product, pIndex) => {
+                          const productKey = getProductKey(product, pIndex);
+                          const imageUrl = getProductImage(product);
+                          const showImage = imageUrl && !failedImages[productKey];
 
-                          {product.why && <p className="why">{product.why}</p>}
+                          return (
+                            <article className="product-card" key={productKey}>
+                              <div className="product-image">
+                                {showImage ? (
+                                  <img
+                                    src={imageUrl}
+                                    alt={product.name || "Kapruka product"}
+                                    title={product.name || "Kapruka product"}
+                                    onError={() => {
+                                      setFailedImages((prev) => ({
+                                        ...prev,
+                                        [productKey]: true,
+                                      }));
+                                    }}
+                                  />
+                                ) : (
+                                  <span>🛍️</span>
+                                )}
+                              </div>
 
-                          <div className="product-actions">
-                            {product.url && (
-                              <a href={product.url} target="_blank" rel="noreferrer">
-                                View
-                              </a>
-                            )}
+                              <div className="product-body">
+                                <h3 title={product.name}>{product.name}</h3>
 
-                            <button onClick={() => addToCart(product)}>
-                              Add to cart
+                                <p className="price">
+                                  {formatPrice(product.price)}
+                                </p>
+
+                                {product.why && <p className="why">{product.why}</p>}
+
+                                <div className="product-actions">
+                                  {product.url && (
+                                    <a
+                                      href={product.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      View
+                                    </a>
+                                  )}
+
+                                  <button onClick={() => addToCart(product)}>
+                                    Add to cart
+                                  </button>
+                                </div>
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+
+                  {(hasCheckout || hasQuickReplies) && (
+                    <div className="assistant-actions-panel">
+                      {hasCheckout && (
+                        <a
+                          className="checkout-link"
+                          href={msg.checkoutUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Continue to Kapruka payment
+                        </a>
+                      )}
+
+                      {hasQuickReplies && (
+                        <div className="quick-replies">
+                          {msg.quickReplies.map((reply, rIndex) => (
+                            <button key={rIndex} onClick={() => sendMessage(reply)}>
+                              {reply}
                             </button>
-                          </div>
+                          ))}
                         </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-
-                {msg.checkoutUrl && (
-                  <a
-                    className="checkout-link"
-                    href={msg.checkoutUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Continue to Kapruka payment
-                  </a>
-                )}
-
-                {msg.quickReplies?.length > 0 && (
-                  <div className="quick-replies">
-                    {msg.quickReplies.map((reply, rIndex) => (
-                      <button key={rIndex} onClick={() => sendMessage(reply)}>
-                        {reply}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {loading && (
             <div className="message-row assistant">
-              <div className="bubble typing">
-                <span></span>
-                <span></span>
-                <span></span>
+              <div className="message-stack assistant">
+                <div className="bubble typing">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               </div>
             </div>
           )}
@@ -341,7 +465,7 @@ Please check delivery availability first for this city, address, and preferred d
               <div className="cart-item" key={`${item.id}-${index}`}>
                 <div>
                   <h4>{item.name}</h4>
-                  <p>{item.price || "Price pending"}</p>
+                  <p>{formatPrice(item.price)}</p>
                 </div>
 
                 <button onClick={() => removeFromCart(index)}>×</button>
